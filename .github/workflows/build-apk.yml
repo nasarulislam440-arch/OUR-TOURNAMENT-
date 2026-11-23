@@ -1,0 +1,45 @@
+name: Build Our Tournament APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Extract source
+        run: |
+          unzip Our_Tournament_App_Source.zip -d source
+
+      - name: Create Android project
+        run: |
+          flutter create --platforms=android --org com.ourtournament app
+          cp source/pubspec.yaml app/pubspec.yaml
+          cp -r source/lib/. app/lib/
+
+      - name: Build APK
+        run: |
+          cd app
+          flutter pub get
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Our-Tournament-APK
+          path: app/build/app/outputs/flutter-apk/app-release.apk
